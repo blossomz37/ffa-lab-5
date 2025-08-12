@@ -1,7 +1,7 @@
 # Product + Constraints (1–pager you paste before any codegen)
 
-## Goal summary (edit as needed):
-	•	Local web app that reads Excel files in /data_raw/, runs ETL → outputs clean CSVs to /data_cleaned/, ingests to DuckDB for querying, and also syncs cleaned data to MongoDB.
+## Goal summary:
+	•	Local web app that reads Excel files in /data_raw/, runs ETL → outputs clean CSVs to /data_cleaned/, ingests to DuckDB for querying.
 	•	UI needs: clickable hyperlinks, inline cover images (if a cell is a URL to an image, render it), preset queries with dropdown filters, free‑text search, export of query results to .docx.
 	•	Run everything locally; simple start script; minimal dependencies.
 

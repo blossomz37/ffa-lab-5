@@ -1,9 +1,5 @@
 ## Description
-This is the guide to Extract Transform and Load information from /data raw xlsx to a usable csv for DuckDB.
-
-## DATA
-Input Directory: /data_raw
-Output Directory: /data_cleaned
+This is the guide to Extract Transform and Load (ETL) information from xlsx to a usable csv for DuckDB.
 
 ## PARSE FILENAME TO CSV
 Date=First 8 characters
@@ -30,6 +26,7 @@ Extract if TRUE
 - ASIN: TRUE
 - kuStatus: 
 - Author: TRUE
+(Author needs to be parsed. Example: For "[Jessamine Chan](https://www.amazon.com/stores/author/B092BKD9NX)" the author name is "Jessamine Chan" and the author's website is the hyperlink)
 - Series: TRUE
 - nReviews: TRUE
 - reviewAverage: TRUE
