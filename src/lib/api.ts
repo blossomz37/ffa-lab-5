@@ -79,8 +79,8 @@ export interface GenreStatsResult {
   romance_count: number;
 }
 
-// Base API URL - will be Express server when implemented
-const API_BASE_URL = 'http://localhost:3001/api';
+// Base API URL - Express server
+const API_BASE_URL = 'http://localhost:3001';
 
 /**
  * Generic API request handler with error handling
@@ -116,81 +116,154 @@ export async function fetchTopRated(
   minReviews: number = 100,
   limit: number = 50
 ): Promise<TopRatedResult[]> {
-  // Mock data for now - replace with real API call
-  return mockTopRated.slice(0, limit);
+  const params = new URLSearchParams();
+  if (genre) params.append('genre', genre);
+  params.append('minReviews', minReviews.toString());
+  params.append('limit', limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/query/top-rated?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch top-rated books');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 export async function fetchMovers(
   genre?: string,
   minDeltaRank: number = 50,
-  windowDays: number = 7
+  limit: number = 25
 ): Promise<MoversResult[]> {
-  // Mock data for now
-  return mockMovers;
+  const params = new URLSearchParams();
+  if (genre) params.append('genre', genre);
+  params.append('minDeltaRank', minDeltaRank.toString());
+  params.append('limit', limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/query/movers?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch movers data');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 export async function fetchPriceBands(genre?: string): Promise<PriceBandResult[]> {
-  // Mock data for now
-  return mockPriceBands;
+  const params = new URLSearchParams();
+  if (genre) params.append('genre', genre);
+
+  const response = await fetch(`${API_BASE_URL}/query/price-bands?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch price bands data');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 export async function fetchAuthorSearch(
-  query: string,
+  author: string,
+  minBooks: number = 1,
   limit: number = 50
 ): Promise<AuthorSearchResult[]> {
-  // Mock data for now
-  return mockAuthorResults.filter(book => 
-    book.author.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, limit);
+  const params = new URLSearchParams();
+  params.append('author', author);
+  params.append('minBooks', minBooks.toString());
+  params.append('limit', limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/query/author-search?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to search authors');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 export async function fetchNewTitles(
-  date: string,
-  genre?: string
+  genre?: string,
+  daysBack: number = 30,
+  limit: number = 50
 ): Promise<NewTitlesResult[]> {
-  // Mock data for now
-  return mockNewTitles;
+  const params = new URLSearchParams();
+  if (genre) params.append('genre', genre);
+  params.append('daysBack', daysBack.toString());
+  params.append('limit', limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/query/new-titles?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch new titles');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 export async function fetchGenreStats(): Promise<GenreStatsResult[]> {
-  // Mock data for now
-  return mockGenreStats;
+  const response = await fetch(`${API_BASE_URL}/query/genre-stats`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch genre statistics');
+  }
+  
+  const result = await response.json();
+  return result.data;
+}
+
+// Search function for the frontend
+export async function searchBooks(
+  query?: string,
+  filters?: {
+    genre?: string;
+    minRating?: number;
+    maxRating?: number;
+    minReviews?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    hasSupernatural?: boolean;
+    hasRomance?: boolean;
+  },
+  limit: number = 100
+): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  
+  if (query) params.append('q', query);
+  if (filters?.genre) params.append('genre', filters.genre);
+  if (filters?.minRating !== undefined) params.append('minRating', filters.minRating.toString());
+  if (filters?.maxRating !== undefined) params.append('maxRating', filters.maxRating.toString());
+  if (filters?.minReviews !== undefined) params.append('minReviews', filters.minReviews.toString());
+  if (filters?.minPrice !== undefined) params.append('minPrice', filters.minPrice.toString());
+  if (filters?.maxPrice !== undefined) params.append('maxPrice', filters.maxPrice.toString());
+  if (filters?.hasSupernatural !== undefined) params.append('hasSupernatural', filters.hasSupernatural.toString());
+  if (filters?.hasRomance !== undefined) params.append('hasRomance', filters.hasRomance.toString());
+  params.append('limit', limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) {
+    throw new Error('Failed to search books');
+  }
+  
+  const result = await response.json();
+  return result.data;
 }
 
 /**
  * Export functions for DOCX generation
  */
 export async function exportToDocx(books: BookData[]): Promise<Blob> {
-  // Mock implementation for Phase 4 - replace with real API call in Phase 5
-  console.log('Mock DOCX export for', books.length, 'books');
-  
-  // Create a mock DOCX file content
-  const mockDocxContent = `Book Export Report
-Generated: ${new Date().toLocaleDateString()}
-
-Selected Books (${books.length} total):
-
-${books.map((book, index) => `
-${index + 1}. ${book.title}
-   Author: ${book.author}
-   Genre: ${book.genre}
-   Rating: ${book.rating ? book.rating.toFixed(1) + '★' : 'No rating'}
-   Price: ${book.price ? '$' + book.price.toFixed(2) : 'No price'}
-   Reviews: ${book.review_count || 'No reviews'}
-   ${book.blurb_text ? 'Description: ' + book.blurb_text.substring(0, 200) + '...' : ''}
-`).join('\n')}
-
-End of Report`;
-
-  // Create a blob with the mock content
-  const blob = new Blob([mockDocxContent], { 
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+  const response = await fetch(`${API_BASE_URL}/export/docx`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ books }),
   });
-  
-  // Simulate network delay for realistic experience
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  return blob;
+
+  if (!response.ok) {
+    throw new Error('Export failed');
+  }
+
+  return await response.blob();
 }
 
 // Mock data for development/testing
