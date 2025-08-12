@@ -9,6 +9,11 @@ A comprehensive ETL pipeline and web application for analyzing book data from Ex
 - MongoDB (optional, can be skipped with `--skip-mongo`)
 - Excel files in `/data_raw/` directory with naming pattern: `YYYYMMDD_<genre>_raw_data.xlsx`
 
+### ⚠️ Known Issues
+- **DuckDB 1.3.2**: Parameter binding bug requires string interpolation workaround
+- **Phase 3 Status**: Query functions implemented but some tests failing due to driver issues
+- See `project_prompts/LESSONS_LEARNED.md` for detailed technical notes
+
 ### Installation
 
 ```bash
@@ -109,6 +114,9 @@ npm run test:watch
 
 # Run specific test file
 npm test -- tests/etl.spec.ts
+
+# Run DuckDB query tests (some may fail due to driver issues)
+npm test -- tests/queries.spec.ts
 ```
 
 ### Test Coverage
@@ -118,6 +126,7 @@ npm test -- tests/etl.spec.ts
 - ✅ Topic tag and boolean parsing
 - ✅ Row deduplication and enrichment
 - ✅ Error handling and rejection logging
+- ⚠️ DuckDB queries: 8/26 tests passing (driver parameter binding issues)
 
 ## 🏗️ Architecture
 
@@ -130,6 +139,14 @@ src/etl/
 ├── loadDuckDb.ts    # DuckDB operations and schema management
 ├── upsertMongo.ts   # MongoDB sync with indexing
 └── run.ts           # ETL orchestrator and CLI
+```
+
+### Query System (Phase 3)
+```
+src/db/
+├── schema.sql       # DuckDB table definitions and views
+├── queries.ts       # Preset query functions with string interpolation
+└── index.ts         # Database connection management
 ```
 
 ### Data Contract
@@ -185,6 +202,16 @@ npm run test:watch    # Run tests in watch mode
 - Close any open database connections
 - Check file permissions in `./data/` directory
 
+**"DuckDB parameter binding failed"**
+- Known issue with DuckDB 1.3.2 Node.js binding
+- Queries use string interpolation workaround
+- Consider downgrading to DuckDB 1.1.x or upgrading when fixed
+
+**"Query tests failing"**
+- DuckDB driver compatibility issues
+- ETL pipeline works correctly
+- Query functions implemented but may need driver fixes
+
 **"Memory issues with large files"**
 - ETL processes files in batches automatically
 - Increase Node.js memory: `NODE_OPTIONS="--max-old-space-size=4096" npm run etl`
@@ -195,15 +222,32 @@ Check log files in `/data_cleaned/logs/` for detailed error messages:
 cat /data_cleaned/logs/20250811_fantasy.log
 ```
 
-## 🎯 Next Steps
+## 🎯 Project Status
 
+### ✅ Completed Phases
+- **Phase 1**: Data contract and ETL rules ✅
+- **Phase 2**: Complete ETL pipeline ✅ (23+ tests passing)
+- **Phase 3**: DuckDB schema and queries ⚠️ (driver compatibility issues)
+
+### 🔄 Current Status
+- ETL pipeline fully functional and tested
+- DuckDB schema created with optimized views
+- Query functions implemented with string interpolation workaround
+- 8/26 query tests passing due to DuckDB 1.3.2 parameter binding bug
+
+### 📋 Next Steps
 This ETL pipeline provides the foundation for:
-- **Phase 3**: DuckDB schema and preset queries
+- **Phase 3**: Complete query function fixes (pending DuckDB driver update)
 - **Phase 4**: React web application scaffolding  
 - **Phase 5**: Express API with DOCX export
 - **Phase 6**: Image handling for book covers
 - **Phase 7**: Selection-based DOCX export UX
 - **Phase 8**: Search and preset query wiring
+
+### 📚 Documentation
+- **Technical Issues**: See `project_prompts/LESSONS_LEARNED.md`
+- **Future Projects**: Updated project prompts include driver testing requirements
+- **Workarounds**: All current solutions documented for future reference
 
 ---
 

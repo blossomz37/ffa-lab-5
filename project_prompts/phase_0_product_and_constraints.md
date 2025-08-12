@@ -20,6 +20,27 @@ OS paths:
 
 Database:
   - DuckDB file: ./data/library.duckdb
+  - **IMPORTANT**: Pin DuckDB version to 1.1.x or test driver compatibility first
+  - Alternative: Consider SQLite with better-drizzle for complex queries if DuckDB issues persist
+  - Document any known driver limitations
+
+## Technology Risk Assessment:
+- DuckDB: Newer database, test driver stability first
+- Excel parsing: XLSX library mature, low risk
+- TypeScript: Stable, medium complexity
+- React + Vite: Stable, low risk
+
+## Mitigation Strategies:
+- Create driver compatibility tests before building on top
+- Have fallback approaches documented
+- Pin all dependency versions in package.json
+
+## Development Workflow:
+1. Phase N: Create minimal working example
+2. Phase N+0.5: Test and validate approach  
+3. Phase N+1: Build full feature
+4. Always commit working states before major changes
+5. Document any workarounds or driver issues encountered
 
 Coding standards:
   - Provide complete, runnable files with paths.

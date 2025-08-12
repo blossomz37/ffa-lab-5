@@ -21,5 +21,18 @@ Requirements:
 - Add comments explaining each step
 - Provide sample unit tests in tests/etl.spec.ts (vitest)
 
+## Development Order:
+1. Start with readXlsx.ts + basic test
+2. Add transform.ts + validation tests  
+3. Test writeCsv.ts with sample data
+4. Create minimal DuckDB connection test
+5. Only then build the full pipeline
+
+## Error Handling Strategy:
+- Log the exact error type and database driver version
+- Include SQL statement and parameters in error logs
+- Create fallback strategies (e.g., string interpolation vs prepared statements)
+- Test error conditions explicitly
+
 Return complete files with imports and package.json updates (scripts: "etl": "tsx scripts/etl.ts").
 ```

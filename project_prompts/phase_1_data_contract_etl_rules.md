@@ -25,27 +25,42 @@
    columns:
      - ingested_date: DATE (from filename)
      - genre: TEXT (mapped display name)
-     - asin: TEXT
+     - asin: TEXT (PRIMARY KEY with ingested_date, genre)
      - title: TEXT
      - author: TEXT
+     - author_url: TEXT  // NEW: separate author hyperlinks
+     - series: TEXT      // NEW: book series information
      - price: DOUBLE
      - rating: DOUBLE
      - review_count: INTEGER
      - rank_overall: INTEGER
-     - rank_category: INTEGER
-     - category: TEXT
-     - cover_url: TEXT  // image URL if present
-     - product_url: TEXT  // Amazon or source URL
-     - notes: TEXT
-   constraints:
-     - asin unique within (ingested_date, genre)
-     - trim whitespace; normalize unicode; coerce numbers
-     - validate URLs; drop clearly invalid rows; log rejects with reason
+     - release_date: DATE        // NEW: publication date
+     - publisher: TEXT           // NEW: publisher info
+     - blurb_text: TEXT         // NEW: book description
+     - cover_url: TEXT          // image URL if present
+     - product_url: TEXT        // Amazon or source URL
+     - topic_tags: TEXT         // NEW: JSON array as string
+     - subcategories: TEXT      // NEW: JSON array as string
+     - blurb_keyphrases: TEXT   // NEW: extracted key phrases
+     - estimated_pov: TEXT      // NEW: narrative perspective
+     - has_supernatural: BOOLEAN // NEW: content flags
+     - has_romance: BOOLEAN     // NEW: content flags
+   
+   ⚠️ NOTE: Design schema for target database's limitations
+   - Avoid partial indexes if using DuckDB
+   - Avoid generated columns if driver doesn't support them
+   - Test CREATE TABLE statements early
 4) Output:
 - Write CSV to /data_cleaned/YYYYMMDD_<genre_key>.csv (UTF‑8, header)
 - Append to DuckDB table `books` (matching schema)
 - Log to /data_cleaned/logs/YYYYMMDD_<genre_key>.log
 5) Logging: write /data_cleaned/logs/YYYYMMDD_<genre_key>.log
+
+## Testing Strategy:
+1. Create minimal test data (2-3 rows) first
+2. Test data contract validation before building ETL
+3. Verify basic database operations before complex queries
+4. Build incrementally: parse → validate → transform → load
 
 ## Prompt to generate these files:
 ```
