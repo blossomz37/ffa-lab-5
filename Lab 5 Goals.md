@@ -1,0 +1,5 @@
+This lab is designed for students of the Future Fiction Academy. The course is Model Context Protocol. We are currently in Session 2, Lab 5. Our goal is to create a DuckDB Database so that we can query Excel files and extract information that will be useful to our goals as authors. The plan is to have a data folder that contains data in Excel. An ETL process will need to be run to clean the data. Then we will want to load the clean data set to mongo db. 
+
+We want to be able to initiate all of this from simple web app that we can run locally. We will want hyperlinks to be clickable, and any hyperlinks that connect to images like book covers should display in our app. We will have some preset queries with dropdown options to limit variables. We will want a search bar to pull up records.
+
+Our web app should also have functionality to export our queried information to a docx file.
