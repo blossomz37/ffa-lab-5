@@ -13,6 +13,7 @@ import { transformRows, deduplicateRows, enrichRows, createTransformSummary } fr
 import { writeCsvFile } from './writeCsv.js';
 import { DuckDBManager } from './loadDuckDb.js';
 import { MongoManager } from './upsertMongo.js';
+import { validateCoverImages } from './imageValidation.js';
 
 /**
  * ETL configuration options
@@ -114,10 +115,10 @@ export class ETLRunner {
   constructor(config: ETLConfig = {}) {
     // Set default configuration
     this.config = {
-      inputDir: config.inputDir || '/data_raw',
-      outputDir: config.outputDir || '/data_cleaned',
-      logDir: config.logDir || '/data_cleaned/logs',
-      duckDbPath: config.duckDbPath || './data/library.duckdb',
+      inputDir: config.inputDir || './data_raw',
+      outputDir: config.outputDir || './data_cleaned',
+      logDir: config.logDir || './logs',
+      duckDbPath: config.duckDbPath || './books.duckdb',
       mongoUrl: config.mongoUrl || 'mongodb://127.0.0.1:27017',
       mongoDbName: config.mongoDbName || 'ffa',
       skipMongo: config.skipMongo || false,
@@ -256,19 +257,23 @@ export class ETLRunner {
       const { uniqueRows } = deduplicateRows(transformResult.validRows);
       const enrichedRows = enrichRows(uniqueRows);
       
-      // Step 4: Write CSV
+      // Step 4: Validate cover images
+      console.log(`🖼️  Validating cover images for ${filename}...`);
+      const rowsWithValidatedImages = await validateCoverImages(enrichedRows);
+      
+      // Step 5: Write CSV
       const csvFilename = `${fileInfo.date.replace(/-/g, '')}_${fileInfo.genreKey}.csv`;
-      const csvResult = await writeCsvFile(enrichedRows, csvFilename, {
+      const csvResult = await writeCsvFile(rowsWithValidatedImages, csvFilename, {
         outputDir: this.config.outputDir,
       });
       
-      // Step 5: Load into DuckDB
-      const duckDbResult = await this.duckDb.loadRows(enrichedRows, filename);
+      // Step 6: Load into DuckDB
+      const duckDbResult = await this.duckDb.loadRows(rowsWithValidatedImages, filename);
       
-      // Step 6: Upsert to MongoDB (if enabled)
+      // Step 7: Upsert to MongoDB (if enabled)
       let mongoResult;
       if (this.mongo) {
-        const mongoUpsertResult = await this.mongo.upsertRows(enrichedRows, filename);
+        const mongoUpsertResult = await this.mongo.upsertRows(rowsWithValidatedImages, filename);
         errors.push(...mongoUpsertResult.errors);
         mongoResult = {
           inserted: mongoUpsertResult.inserted,
@@ -276,7 +281,7 @@ export class ETLRunner {
         };
       }
       
-      // Step 7: Write log file
+      // Step 8: Write log file
       await this.writeLogFile(fileInfo, transformResult, filename);
       
       return {

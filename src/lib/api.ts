@@ -24,6 +24,7 @@ export interface BookData {
   subcategories?: string;
   has_supernatural?: boolean;
   has_romance?: boolean;
+  cover_ok?: boolean;
 }
 
 export interface TopRatedResult extends BookData {

@@ -64,6 +64,7 @@ const CSV_COLUMNS = [
   { id: 'estimated_pov', title: 'estimated_pov' },
   { id: 'has_supernatural', title: 'has_supernatural' },
   { id: 'has_romance', title: 'has_romance' },
+  { id: 'cover_ok', title: 'cover_ok' },
 ];
 
 /**

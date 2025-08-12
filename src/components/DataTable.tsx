@@ -108,21 +108,35 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
   };
 
   // Render cover image or placeholder
-  const renderCover = (coverUrl?: string, title?: string) => {
-    if (coverUrl && coverUrl.startsWith('http')) {
+  const renderCover = (book: BookData) => {
+    // Only render image if cover_ok is true
+    if (book.cover_ok && book.cover_url && book.cover_url.startsWith('http')) {
       return (
         <img
-          src={coverUrl}
-          alt={`Cover of ${title}`}
+          src={book.cover_url}
+          alt={`Cover of ${book.title}`}
           className="book-cover"
+          loading="lazy"
+          style={{ maxHeight: '64px', width: 'auto' }}
           onError={(e) => {
-            // Hide broken images
+            // Hide broken images and show placeholder
             e.currentTarget.style.display = 'none';
+            const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+            if (placeholder) {
+              placeholder.style.display = 'flex';
+            }
           }}
         />
       );
     }
-    return <div className="book-cover bg-muted flex items-center justify-center text-xs">No Cover</div>;
+    return (
+      <div 
+        className="book-cover bg-muted flex items-center justify-center text-xs border rounded"
+        style={{ height: '64px', width: '48px', fontSize: '10px' }}
+      >
+        No Cover
+      </div>
+    );
   };
 
   // Loading state
@@ -231,7 +245,7 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
                     />
                   </td>
                   <td>
-                    {renderCover(book.cover_url, book.title)}
+                    {renderCover(book)}
                   </td>
                   <td className="font-medium">
                     {renderLink(book.title, book.product_url)}

@@ -111,7 +111,7 @@ class DuckDBManager {
       `);
       
       const tableNames = tables.map((t: any) => t.table_name);
-      const expectedTables = ['books_raw', 'books_clean'];
+      const expectedTables = ['books_clean'];
       
       const hasAllTables = expectedTables.every(table => tableNames.includes(table));
       

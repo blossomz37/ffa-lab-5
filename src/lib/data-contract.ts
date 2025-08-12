@@ -115,6 +115,9 @@ export interface CleanRow {
   
   /** Whether book contains romance elements */
   has_romance?: boolean;
+  
+  /** Whether the cover image URL is valid and accessible */
+  cover_ok?: boolean;
 }
 
 /**

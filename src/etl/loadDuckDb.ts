@@ -55,7 +55,7 @@ export class DuckDBManager {
    */
   private async createSchema(): Promise<void> {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS books (
+      CREATE TABLE IF NOT EXISTS books_clean (
         ingested_date DATE NOT NULL,
         genre VARCHAR NOT NULL,
         asin VARCHAR NOT NULL,
@@ -78,6 +78,7 @@ export class DuckDBManager {
         estimated_pov VARCHAR,
         has_supernatural BOOLEAN,
         has_romance BOOLEAN,
+        cover_ok BOOLEAN DEFAULT FALSE,
         
         -- Primary key constraint
         PRIMARY KEY (ingested_date, genre, asin)
@@ -86,12 +87,12 @@ export class DuckDBManager {
     
     // Create indexes for common queries
     const createIndexesSQL = [
-      'CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre);',
-      'CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);',
-      'CREATE INDEX IF NOT EXISTS idx_books_rating ON books(rating);',
-      'CREATE INDEX IF NOT EXISTS idx_books_rank ON books(rank_overall);',
-      'CREATE INDEX IF NOT EXISTS idx_books_date ON books(ingested_date);',
-      'CREATE INDEX IF NOT EXISTS idx_books_price ON books(price);',
+      'CREATE INDEX IF NOT EXISTS idx_books_genre ON books_clean(genre);',
+      'CREATE INDEX IF NOT EXISTS idx_books_author ON books_clean(author);',
+      'CREATE INDEX IF NOT EXISTS idx_books_rating ON books_clean(rating);',
+      'CREATE INDEX IF NOT EXISTS idx_books_rank ON books_clean(rank_overall);',
+      'CREATE INDEX IF NOT EXISTS idx_books_date ON books_clean(ingested_date);',
+      'CREATE INDEX IF NOT EXISTS idx_books_price ON books_clean(price);',
     ];
     
     try {
@@ -147,7 +148,7 @@ export class DuckDBManager {
   private async createTempTable(tableName: string): Promise<void> {
     const createTempSQL = `
       CREATE TEMPORARY TABLE ${tableName} AS 
-      SELECT * FROM books WHERE 1=0; -- Copy structure but no data
+      SELECT * FROM books_clean WHERE 1=0; -- Copy structure but no data
     `;
     
     await this.executeQuery(createTempSQL);
@@ -159,7 +160,7 @@ export class DuckDBManager {
   private async insertIntoTempTable(tableName: string, rows: CleanRow[]): Promise<void> {
     // Prepare batch insert with parameterized query
     const placeholders = rows.map(() => 
-      '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).join(', ');
     
     const insertSQL = `
@@ -167,7 +168,7 @@ export class DuckDBManager {
         ingested_date, genre, asin, title, author, author_url, series,
         price, rating, review_count, rank_overall, release_date, publisher,
         blurb_text, cover_url, product_url, topic_tags, subcategories,
-        blurb_keyphrases, estimated_pov, has_supernatural, has_romance
+        blurb_keyphrases, estimated_pov, has_supernatural, has_romance, cover_ok
       ) VALUES ${placeholders};
     `;
     
@@ -195,6 +196,7 @@ export class DuckDBManager {
       row.estimated_pov || null,
       row.has_supernatural || null,
       row.has_romance || null,
+      row.cover_ok || false,
     ]);
     
     await this.executeQuery(insertSQL, values);
