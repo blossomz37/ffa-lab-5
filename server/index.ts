@@ -154,7 +154,6 @@ async function startServer() {
     } else {
       const stats = await duck.getStats();
       console.log('✅ Database validation successful:');
-      console.log(`   - Raw books: ${stats.raw_count}`);
       console.log(`   - Clean books: ${stats.clean_count}`);
       console.log(`   - Genres: ${stats.genres.length}`);
     }

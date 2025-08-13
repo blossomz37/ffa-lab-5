@@ -131,14 +131,12 @@ class DuckDBManager {
   /**
    * Get basic database statistics
    */
-  public async getStats(): Promise<{ raw_count: number; clean_count: number; genres: string[] }> {
+  public async getStats(): Promise<{ clean_count: number; genres: string[] }> {
     try {
-      const [rawCount] = await this.query('SELECT COUNT(*) as count FROM books_raw');
       const [cleanCount] = await this.query('SELECT COUNT(*) as count FROM books_clean');
       const genres = await this.query('SELECT DISTINCT genre FROM books_clean ORDER BY genre');
       
       return {
-        raw_count: rawCount.count,
         clean_count: cleanCount.count,
         genres: genres.map((g: any) => g.genre)
       };

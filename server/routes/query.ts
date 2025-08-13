@@ -4,6 +4,33 @@ import DuckDBManager from '../duck';
 const router = express.Router();
 
 /**
+ * Convert BigInt values to numbers for JSON serialization
+ */
+function convertBigIntToNumber(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+  
+  if (typeof obj === 'bigint') {
+    return Number(obj);
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(convertBigIntToNumber);
+  }
+  
+  if (typeof obj === 'object') {
+    const converted: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      converted[key] = convertBigIntToNumber(value);
+    }
+    return converted;
+  }
+  
+  return obj;
+}
+
+/**
  * Query Routes
  * Provides DuckDB-backed endpoints for all book analytics queries
  * Implements the same queries from Phase 3 with Express API endpoints
@@ -48,7 +75,7 @@ router.get('/top-rated', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: { genre, minReviews: parseInt(minReviews as string), limit: parseInt(limit as string) },
     });
@@ -102,7 +129,7 @@ router.get('/movers', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: { genre, minDeltaRank: parseInt(minDeltaRank as string), limit: parseInt(limit as string) },
       note: 'Movers data is simulated as historical ranking data is not available',
@@ -177,7 +204,7 @@ router.get('/price-bands', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: { genre },
     });
@@ -239,7 +266,7 @@ router.get('/author-search', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: { author, minBooks: parseInt(minBooks as string), limit: parseInt(limit as string) },
     });
@@ -294,7 +321,7 @@ router.get('/new-titles', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: { genre, daysBack: parseInt(daysBack as string), limit: parseInt(limit as string) },
     });
@@ -338,7 +365,7 @@ router.get('/genre-stats', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
     });
     
@@ -438,7 +465,7 @@ router.get('/search', async (req, res) => {
     
     res.json({
       success: true,
-      data: results,
+      data: convertBigIntToNumber(results),
       count: results.length,
       filters: req.query,
     });
