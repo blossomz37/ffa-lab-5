@@ -197,7 +197,7 @@ export default function ExportDocx() {
                       type="checkbox"
                       checked={includeCovers}
                       onChange={(e) => setIncludeCovers(e.target.checked)}
-                      className="rounded border-border"
+                      className="rounded border-gray-300"
                     />
                     <span className="text-sm">Cover Images</span>
                   </label>
@@ -207,7 +207,7 @@ export default function ExportDocx() {
                       type="checkbox"
                       checked={includeDescriptions}
                       onChange={(e) => setIncludeDescriptions(e.target.checked)}
-                      className="rounded border-border"
+                      className="rounded border-gray-300"
                     />
                     <span className="text-sm">Book Descriptions</span>
                   </label>
@@ -217,7 +217,7 @@ export default function ExportDocx() {
                       type="checkbox"
                       checked={includePricing}
                       onChange={(e) => setIncludePricing(e.target.checked)}
-                      className="rounded border-border"
+                      className="rounded border-gray-300"
                     />
                     <span className="text-sm">Pricing Information</span>
                   </label>
@@ -227,7 +227,7 @@ export default function ExportDocx() {
                       type="checkbox"
                       checked={includeRatings}
                       onChange={(e) => setIncludeRatings(e.target.checked)}
-                      className="rounded border-border"
+                      className="rounded border-gray-300"
                     />
                     <span className="text-sm">Ratings & Reviews</span>
                   </label>

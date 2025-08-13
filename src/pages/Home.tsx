@@ -242,7 +242,7 @@ export default function Home() {
               {/* Clear All Button */}
               <button
                 onClick={handleClearAll}
-                className="w-full px-3 py-2 text-sm border border-border rounded-md hover:bg-accent transition-colors"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-accent transition-colors"
               >
                 Clear All
               </button>

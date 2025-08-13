@@ -126,7 +126,7 @@ export default function PresetPicker({
           p-4 rounded-lg border text-left transition-all duration-200
           ${isSelected 
             ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
-            : 'border-border bg-card hover:border-primary/50 hover:bg-accent/50'
+            : 'border-gray-300 bg-card hover:border-primary/50 hover:bg-accent/50'
           }
           ${isDisabled 
             ? 'opacity-50 cursor-not-allowed' 

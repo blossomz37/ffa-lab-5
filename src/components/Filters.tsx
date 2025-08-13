@@ -184,7 +184,7 @@ export default function Filters({ filters, onFiltersChange, availableGenres = []
               type="checkbox"
               checked={filters.hasSupernatural || false}
               onChange={(e) => updateFilter('hasSupernatural', e.target.checked || undefined)}
-              className="rounded border-border"
+              className="rounded border-gray-300"
             />
             <span className="text-sm">Has Supernatural Elements</span>
           </label>
@@ -194,7 +194,7 @@ export default function Filters({ filters, onFiltersChange, availableGenres = []
               type="checkbox"
               checked={filters.hasRomance || false}
               onChange={(e) => updateFilter('hasRomance', e.target.checked || undefined)}
-              className="rounded border-border"
+              className="rounded border-gray-300"
             />
             <span className="text-sm">Has Romance</span>
           </label>

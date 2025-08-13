@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BookData } from '../lib/api';
+import BookCover from './BookCover';
 
 interface DataTableProps {
   data: BookData[];
@@ -107,35 +108,14 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
     return text;
   };
 
-  // Render cover image or placeholder
+  // Render cover image using BookCover component
   const renderCover = (book: BookData) => {
-    // Only render image if cover_ok is true
-    if (book.cover_ok && book.cover_url && book.cover_url.startsWith('http')) {
-      return (
-        <img
-          src={book.cover_url}
-          alt={`Cover of ${book.title}`}
-          className="book-cover"
-          loading="lazy"
-          style={{ maxHeight: '64px', width: 'auto' }}
-          onError={(e) => {
-            // Hide broken images and show placeholder
-            e.currentTarget.style.display = 'none';
-            const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-            if (placeholder) {
-              placeholder.style.display = 'flex';
-            }
-          }}
-        />
-      );
-    }
     return (
-      <div 
-        className="book-cover bg-muted flex items-center justify-center text-xs border rounded"
-        style={{ height: '64px', width: '48px', fontSize: '10px' }}
-      >
-        No Cover
-      </div>
+      <BookCover 
+        coverUrl={book.cover_url} 
+        title={book.title}
+        size="medium"
+      />
     );
   };
 
@@ -172,7 +152,7 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
               type="checkbox"
               checked={selectedBooks.size === data.length && data.length > 0}
               onChange={(e) => handleSelectAll(e.target.checked)}
-              className="rounded border-border"
+              className="rounded border-gray-300"
             />
             Select All
           </label>
@@ -190,10 +170,10 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
                     type="checkbox"
                     checked={selectedBooks.size === paginatedData.length && paginatedData.length > 0}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-border"
+                    className="rounded border-gray-300"
                   />
                 </th>
-                <th className="w-20">Cover</th>
+                <th className="w-24">Cover</th>
                 <th 
                   className="cursor-pointer hover:bg-muted/30"
                   onClick={() => handleSort('title')}
@@ -241,7 +221,7 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
                       type="checkbox"
                       checked={selectedBooks.has(book.asin)}
                       onChange={(e) => handleRowSelect(book.asin, e.target.checked)}
-                      className="rounded border-border"
+                      className="rounded border-gray-300"
                     />
                   </td>
                   <td>
