@@ -25,7 +25,7 @@ export default function Home() {
   const [selectedPreset, setSelectedPreset] = useState<string | undefined>();
   
   // Data table state
-  const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+  const [selectedBooks, setSelectedBooks] = useState<BookData[]>([]);
   
   // View mode state
   const [viewMode, setViewMode] = useState<'search' | 'preset'>('search');
@@ -85,9 +85,35 @@ export default function Home() {
 
   // Handle book selection for export
   const handleBookSelection = useCallback((selectedBooksArray: BookData[]) => {
-    const selectedIds = new Set(selectedBooksArray.map(book => book.asin));
-    setSelectedBooks(selectedIds);
+    setSelectedBooks(selectedBooksArray);
   }, []);
+
+  // Export selected books to DOCX
+  const handleExportDOCX = async () => {
+    if (selectedBooks.length === 0) {
+      alert('Please select at least one book to export.');
+      return;
+    }
+
+    try {
+      const response = await api.exportToDocx(selectedBooks);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(response);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `book-report-${new Date().toISOString().split('T')[0]}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log(`✅ Exported ${selectedBooks.length} books to DOCX`);
+    } catch (error) {
+      console.error('❌ Export failed:', error);
+      alert('Export failed. Please try again.');
+    }
+  };
 
   // Clear all selections and reset to default view
   const handleClearAll = () => {
@@ -95,7 +121,7 @@ export default function Home() {
     setFilters({});
     setSelectedPreset(undefined);
     setViewMode('search');
-    setSelectedBooks(new Set());
+    setSelectedBooks([]);
   };
 
   return (
@@ -213,10 +239,18 @@ export default function Home() {
 
                 {/* Results Actions */}
                 <div className="flex items-center gap-2">
-                  {selectedBooks.size > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {selectedBooks.size} selected for export
-                    </span>
+                  {selectedBooks.length > 0 && (
+                    <>
+                      <span className="text-sm text-muted-foreground">
+                        {selectedBooks.length} selected for export
+                      </span>
+                      <button
+                        onClick={handleExportDOCX}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                      >
+                        Export to DOCX
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
