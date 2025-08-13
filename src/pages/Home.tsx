@@ -4,6 +4,7 @@ import SearchBar from '../components/SearchBar';
 import Filters, { FilterOptions } from '../components/Filters';
 import PresetPicker from '../components/PresetPicker';
 import DataTable from '../components/DataTable';
+import AnalyticsSummary from '../components/AnalyticsSummary';
 import * as api from '../lib/api';
 import type { BookData } from '../lib/api';
 
@@ -29,6 +30,9 @@ export default function Home() {
   
   // View mode state
   const [viewMode, setViewMode] = useState<'search' | 'preset'>('search');
+  
+  // Analytics data state
+  const [analyticsData, setAnalyticsData] = useState<any[]>([]);
 
   // Fetch books based on current search/filter criteria
   const fetchBooks = useCallback(async () => {
@@ -39,12 +43,61 @@ export default function Home() {
       let result: BookData[];
       
       if (viewMode === 'preset' && selectedPreset) {
-        // Execute preset query - for now, just return mock data
-        // In the future, this will call the actual API based on preset type
-        result = await api.fetchTopRated('Fantasy', 100, 10);
+        // Execute the selected preset query
+        // Clear analytics data for book-type presets
+        setAnalyticsData([]);
+        
+        switch (selectedPreset) {
+          case 'getHighRatedBooks':
+            result = await api.getHighRatedBooks();
+            break;
+          case 'getPopularBooks':
+            result = await api.getPopularBooks();
+            break;
+          case 'getCheapBooks':
+            result = await api.getCheapBooks();
+            break;
+          case 'getExpensiveBooks':
+            result = await api.getExpensiveBooks();
+            break;
+          case 'getRomanceBooks':
+            result = await api.getRomanceBooks();
+            break;
+          case 'getFantasyBooks':
+            result = await api.getFantasyBooks();
+            break;
+          case 'getSciFiBooks':
+            result = await api.getSciFiBooks();
+            break;
+          case 'getSupernaturalBooks':
+            result = await api.getSupernaturalBooks();
+            break;
+          case 'getGenreStats':
+            // Special handling for analytics queries that don't return books
+            const stats = await api.getGenreStats();
+            setAnalyticsData(stats);
+            result = []; // Don't show books for analytics
+            break;
+          case 'getPriceAnalysis':
+            const priceData = await api.getPriceAnalysis();
+            setAnalyticsData(priceData);
+            result = [];
+            break;
+          case 'getRatingDistribution':
+            const ratingData = await api.getRatingDistribution();
+            setAnalyticsData(ratingData);
+            result = [];
+            break;
+          case 'getTopAuthors':
+            result = await api.getTopAuthors();
+            break;
+          default:
+            result = await api.fetchTopRated(undefined, 0, 100);
+        }
       } else {
-        // For now, just return all mock data since searchBooks doesn't exist
+        // Default search behavior
         result = await api.fetchTopRated(undefined, 0, 100);
+        setAnalyticsData([]); // Clear analytics data for non-preset views
       }
       
       setBooks(result);
@@ -263,12 +316,19 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Data Table */}
-              <DataTable
-                data={books || []}
-                loading={loading}
-                onSelectionChange={handleBookSelection}
-              />
+              {/* Data Display - Books or Analytics */}
+              {viewMode === 'preset' && selectedPreset && ['getGenreStats', 'getPriceAnalysis', 'getRatingDistribution'].includes(selectedPreset) ? (
+                <AnalyticsSummary
+                  presetType={selectedPreset}
+                  data={analyticsData}
+                />
+              ) : (
+                <DataTable
+                  data={books || []}
+                  loading={loading}
+                  onSelectionChange={handleBookSelection}
+                />
+              )}
             </div>
           </div>
         </div>

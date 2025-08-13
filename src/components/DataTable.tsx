@@ -235,7 +235,7 @@ export default function DataTable({ data, loading = false, onSelectionChange }: 
             </thead>
             <tbody>
               {paginatedData.map((book) => (
-                <tr key={book.asin} className="hover:bg-muted/30">
+                <tr key={`${book.ingested_date}-${book.genre}-${book.asin}`} className="hover:bg-muted/30">
                   <td>
                     <input
                       type="checkbox"

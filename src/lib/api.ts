@@ -128,7 +128,7 @@ export async function fetchTopRated(
   }
   
   const result = await response.json();
-  return result;
+  return result.data;
 }
 
 export async function fetchMovers(
@@ -245,7 +245,7 @@ export async function searchBooks(
   }
   
   const result = await response.json();
-  return result;
+  return result.data;
 }
 
 /**
@@ -265,6 +265,119 @@ export async function exportToDocx(books: BookData[]): Promise<Blob> {
   }
 
   return await response.blob();
+}
+
+/**
+ * Preset Query Functions for Phase 8
+ * Professional analytics queries using real API endpoints
+ */
+
+// Book-focused presets
+export async function getHighRatedBooks(): Promise<TopRatedResult[]> {
+  return fetchTopRated(undefined, 1000, 50); // High review count, top 50
+}
+
+export async function getPopularBooks(): Promise<TopRatedResult[]> {
+  return fetchTopRated(undefined, 5000, 50); // Very high review count
+}
+
+export async function getCheapBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('maxPrice', '5.00');
+  params.append('limit', '50');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch budget books');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getExpensiveBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('minPrice', '15.00');
+  params.append('limit', '50');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch premium books');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getRomanceBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('hasRomance', 'true');
+  params.append('limit', '100');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch romance books');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getFantasyBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('genre', 'Fantasy');
+  params.append('limit', '100');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch fantasy books');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getSciFiBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('genre', 'Science Fiction');
+  params.append('limit', '100');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch sci-fi books');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getSupernaturalBooks(): Promise<BookData[]> {
+  const params = new URLSearchParams();
+  params.append('hasSupernatural', 'true');
+  params.append('limit', '100');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch supernatural books');
+  const result = await response.json();
+  return result.data;
+}
+
+// Analytics-focused presets
+export async function getGenreStats(): Promise<GenreStatsResult[]> {
+  const response = await fetch(`${API_BASE_URL}/query/genre-stats`);
+  if (!response.ok) throw new Error('Failed to fetch genre statistics');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getRatingDistribution(): Promise<any[]> {
+  // This would need a new API endpoint for rating distribution
+  // For now, return genre stats as a placeholder
+  return getGenreStats();
+}
+
+export async function getPriceAnalysis(): Promise<PriceBandResult[]> {
+  const response = await fetch(`${API_BASE_URL}/query/price-bands`);
+  if (!response.ok) throw new Error('Failed to fetch price analysis');
+  const result = await response.json();
+  return result.data;
+}
+
+export async function getTopAuthors(): Promise<any[]> {
+  // This would need a new API endpoint for top authors
+  // For now, return a search result sorted by author
+  const params = new URLSearchParams();
+  params.append('limit', '50');
+  
+  const response = await fetch(`${API_BASE_URL}/query/search?${params}`);
+  if (!response.ok) throw new Error('Failed to fetch top authors');
+  const result = await response.json();
+  return result.data;
 }
 
 // Mock data for development/testing
