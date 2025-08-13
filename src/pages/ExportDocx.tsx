@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { ArrowLeft, BookOpen } from 'lucide-react';
 import { exportToDocx } from '../lib/api';
 import AdvancedExport, { type ExportFormat, type ExportOptions } from '../components/AdvancedExport';
@@ -15,7 +15,6 @@ import type { BookData } from '../lib/api';
  */
 export default function ExportDocx() {
   const location = useLocation();
-  const navigate = useNavigate();
   
   // Get selected books from navigation state
   const selectedBooks = (location.state?.selectedBooks as BookData[]) || [];
