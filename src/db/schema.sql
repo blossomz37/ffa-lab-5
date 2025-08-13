@@ -2,7 +2,7 @@
 -- Book data analytics database schema optimized for fast querying
 
 -- Main books table with comprehensive indexing
-CREATE TABLE IF NOT EXISTS books (
+CREATE TABLE IF NOT EXISTS books_clean (
     -- Primary identification
     ingested_date DATE NOT NULL,
     genre VARCHAR NOT NULL,
@@ -42,24 +42,24 @@ CREATE TABLE IF NOT EXISTS books (
 );
 
 -- Performance indexes for common query patterns
-CREATE INDEX IF NOT EXISTS idx_books_genre ON books(genre);
-CREATE INDEX IF NOT EXISTS idx_books_author ON books(author);
-CREATE INDEX IF NOT EXISTS idx_books_rating_desc ON books(rating DESC);
-CREATE INDEX IF NOT EXISTS idx_books_review_count_desc ON books(review_count DESC);
-CREATE INDEX IF NOT EXISTS idx_books_rank_asc ON books(rank_overall ASC);
-CREATE INDEX IF NOT EXISTS idx_books_date_desc ON books(ingested_date DESC);
-CREATE INDEX IF NOT EXISTS idx_books_price_asc ON books(price ASC);
-CREATE INDEX IF NOT EXISTS idx_books_release_date_desc ON books(release_date DESC);
+CREATE INDEX IF NOT EXISTS idx_books_genre ON books_clean(genre);
+CREATE INDEX IF NOT EXISTS idx_books_author ON books_clean(author);
+CREATE INDEX IF NOT EXISTS idx_books_rating_desc ON books_clean(rating DESC);
+CREATE INDEX IF NOT EXISTS idx_books_review_count_desc ON books_clean(review_count DESC);
+CREATE INDEX IF NOT EXISTS idx_books_rank_asc ON books_clean(rank_overall ASC);
+CREATE INDEX IF NOT EXISTS idx_books_date_desc ON books_clean(ingested_date DESC);
+CREATE INDEX IF NOT EXISTS idx_books_price_asc ON books_clean(price ASC);
+CREATE INDEX IF NOT EXISTS idx_books_release_date_desc ON books_clean(release_date DESC);
 
 -- Composite indexes for complex queries
-CREATE INDEX IF NOT EXISTS idx_books_genre_rating ON books(genre, rating DESC);
-CREATE INDEX IF NOT EXISTS idx_books_genre_date ON books(genre, ingested_date DESC);
-CREATE INDEX IF NOT EXISTS idx_books_author_date ON books(author, ingested_date DESC);
+CREATE INDEX IF NOT EXISTS idx_books_genre_rating ON books_clean(genre, rating DESC);
+CREATE INDEX IF NOT EXISTS idx_books_genre_date ON books_clean(genre, ingested_date DESC);
+CREATE INDEX IF NOT EXISTS idx_books_author_date ON books_clean(author, ingested_date DESC);
 
 -- Full-text search preparation (for future use)
 -- Note: DuckDB has limited full-text search, but we can use LIKE patterns efficiently
-CREATE INDEX IF NOT EXISTS idx_books_title_lower ON books(LOWER(title));
-CREATE INDEX IF NOT EXISTS idx_books_author_lower ON books(LOWER(author));
+CREATE INDEX IF NOT EXISTS idx_books_title_lower ON books_clean(LOWER(title));
+CREATE INDEX IF NOT EXISTS idx_books_author_lower ON books_clean(LOWER(author));
 
 -- Views for common aggregations
 CREATE OR REPLACE VIEW books_summary AS
@@ -74,7 +74,7 @@ SELECT
     MAX(ingested_date) as latest_date,
     COUNT(*) FILTER (WHERE has_supernatural = true) as supernatural_count,
     COUNT(*) FILTER (WHERE has_romance = true) as romance_count
-FROM books 
+FROM books_clean 
 GROUP BY genre
 ORDER BY total_books DESC;
 
@@ -87,7 +87,7 @@ SELECT
     AVG(review_count) as avg_reviews,
     COUNT(DISTINCT genre) as genre_count,
     STRING_AGG(DISTINCT genre, ', ' ORDER BY genre) as genres
-FROM books 
+FROM books_clean 
 WHERE rating IS NOT NULL
 GROUP BY author
 HAVING book_count >= 2 -- Authors with multiple books
@@ -98,7 +98,7 @@ CREATE OR REPLACE VIEW recent_releases AS
 SELECT 
     *,
     ROW_NUMBER() OVER (PARTITION BY genre ORDER BY release_date DESC, ingested_date DESC) as rank_in_genre
-FROM books 
+FROM books_clean 
 WHERE release_date IS NOT NULL 
   AND release_date >= CURRENT_DATE - INTERVAL '365 days'
 ORDER BY release_date DESC;
@@ -121,7 +121,7 @@ SELECT
   MIN(price) as min_price,
   MAX(price) as max_price,
   AVG(price) as avg_price
-FROM books 
+FROM books_clean 
 WHERE price IS NOT NULL
 GROUP BY genre,
   CASE 
@@ -157,7 +157,7 @@ SELECT
     FLOOR(rating * 2) / 2 as rating_bucket, -- 0.5 increments
     COUNT(*) as book_count,
     AVG(review_count) as avg_reviews
-FROM books 
+FROM books_clean 
 WHERE rating IS NOT NULL
 GROUP BY genre, rating_bucket
 ORDER BY genre, rating_bucket DESC;
@@ -172,7 +172,7 @@ SELECT
     AVG(review_count) as avg_reviews,
     MIN(release_date) as first_book_date,
     MAX(release_date) as latest_book_date
-FROM books 
+FROM books_clean 
 WHERE rating IS NOT NULL
 GROUP BY COALESCE(series, 'Standalone'), genre
 HAVING COUNT(*) >= 2 OR MIN(series) IS NULL

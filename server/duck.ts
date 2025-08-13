@@ -14,7 +14,7 @@ class DuckDBManager {
 
   private constructor() {
     // Use the database file created during ETL
-    this.dbPath = path.join(process.cwd(), 'books.duckdb');
+    this.dbPath = path.join(process.cwd(), 'data', 'library.duckdb');
     this.db = new Database.Database(this.dbPath);
     console.log(`📊 DuckDB initialized with database: ${this.dbPath}`);
   }

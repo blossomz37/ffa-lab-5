@@ -67,7 +67,7 @@ export async function topRated(
       SELECT 
         *,
         ROW_NUMBER() OVER (ORDER BY rating DESC, review_count DESC) as rank_position
-      FROM books 
+      FROM books_clean 
       WHERE rating IS NOT NULL 
         AND review_count >= ${minReviews}
         AND genre = '${genre.replace(/'/g, "''")}'
@@ -79,7 +79,7 @@ export async function topRated(
       SELECT 
         *,
         ROW_NUMBER() OVER (ORDER BY rating DESC, review_count DESC) as rank_position
-      FROM books 
+      FROM books_clean 
       WHERE rating IS NOT NULL 
         AND review_count >= ${minReviews}
       ORDER BY rating DESC, review_count DESC
@@ -129,7 +129,7 @@ export async function movers(
           asin, title, author, genre, rank_overall, ingested_date, rating, review_count, price,
           LAG(rank_overall) OVER (PARTITION BY asin ORDER BY ingested_date) as prev_rank,
           LAG(ingested_date) OVER (PARTITION BY asin ORDER BY ingested_date) as prev_date
-        FROM books 
+        FROM books_clean 
         WHERE rank_overall IS NOT NULL
           AND ingested_date >= CURRENT_DATE - INTERVAL '${windowDays + 7} days'
           AND genre = ?
@@ -162,7 +162,7 @@ export async function movers(
           asin, title, author, genre, rank_overall, ingested_date, rating, review_count, price,
           LAG(rank_overall) OVER (PARTITION BY asin ORDER BY ingested_date) as prev_rank,
           LAG(ingested_date) OVER (PARTITION BY asin ORDER BY ingested_date) as prev_date
-        FROM books 
+        FROM books_clean 
         WHERE rank_overall IS NOT NULL
           AND ingested_date >= CURRENT_DATE - INTERVAL '${windowDays + 7} days'
       )
@@ -229,7 +229,7 @@ export async function priceBands(genre?: string): Promise<PriceBandResult[]> {
         MAX(price) as max_price,
         AVG(price) as avg_price,
         COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () as percentage_of_total
-      FROM books 
+      FROM books_clean 
       WHERE price IS NOT NULL
         ${genre ? 'AND genre = ?' : ''}
       GROUP BY 
@@ -296,7 +296,7 @@ export async function authorSearch(
           WHEN LOWER(author) LIKE LOWER(?) THEN 80
           ELSE 70
         END as match_score
-      FROM books 
+      FROM books_clean 
       WHERE LOWER(author) LIKE LOWER(?)
     ),
     author_stats AS (
@@ -304,7 +304,7 @@ export async function authorSearch(
         author,
         COUNT(*) as total_books,
         AVG(rating) as avg_rating
-      FROM books 
+      FROM books_clean 
       WHERE LOWER(author) LIKE LOWER(?)
       GROUP BY author
     )
@@ -368,7 +368,7 @@ export async function newTitlesOn(
           THEN CAST((DATE(?) - release_date) AS INTEGER)
           ELSE NULL 
         END as days_since_release
-      FROM books 
+      FROM books_clean 
       WHERE ingested_date = DATE(?)
         AND genre = ?
       ORDER BY 
@@ -392,7 +392,7 @@ export async function newTitlesOn(
           THEN CAST((DATE(?) - release_date) AS INTEGER)
           ELSE NULL 
         END as days_since_release
-      FROM books 
+      FROM books_clean 
       WHERE ingested_date = DATE(?)
       ORDER BY 
         is_new_release DESC,
@@ -427,7 +427,7 @@ export interface GenreStatsResult {
 }
 
 export async function getGenreStats(): Promise<GenreStatsResult[]> {
-  const sql = `SELECT * FROM books_summary ORDER BY total_books DESC`;
+  const sql = `SELECT * FROM books_clean_summary ORDER BY total_books DESC`;
   return executeQuery<GenreStatsResult>(sql);
 }
 
@@ -449,7 +449,7 @@ export async function getBooksBySeries(
         series,
         COUNT(*) as series_book_count,
         AVG(rating) as series_avg_rating
-      FROM books 
+      FROM books_clean 
       WHERE series = ?
       GROUP BY series
     )
@@ -457,7 +457,7 @@ export async function getBooksBySeries(
       b.*,
       ss.series_book_count,
       ss.series_avg_rating
-    FROM books b
+    FROM books_clean b
     LEFT JOIN series_stats ss ON b.series = ss.series
     WHERE b.series = ?
     ORDER BY b.release_date ASC NULLS LAST, b.ingested_date ASC
@@ -484,7 +484,7 @@ export async function getTrendingTopics(limit: number = 20): Promise<TrendingTop
         genre,
         rating,
         TRIM(UNNEST(STRING_SPLIT(REPLACE(REPLACE(topic_tags, '[', ''), ']', ''), ','))) as topic
-      FROM books 
+      FROM books_clean 
       WHERE topic_tags IS NOT NULL 
         AND topic_tags != ''
         AND topic_tags != '[]'
