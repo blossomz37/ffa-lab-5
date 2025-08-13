@@ -7,13 +7,14 @@
  * Usage: node scripts/etl.ts [options]
  */
 
-import { ETLRunner, parseETLArgs } from '../src/etl/run.js';
-
 /**
  * Main function that runs the ETL pipeline
  */
 async function main(): Promise<void> {
   try {
+    // Import ETL modules
+    const { ETLRunner, parseETLArgs } = await import('../src/etl/run.js');
+    
     // Parse command line arguments
     const args = process.argv.slice(2); // Remove 'node' and script path
     const config = parseETLArgs(args);

@@ -207,7 +207,7 @@ export default function Home() {
                     }
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {loading ? 'Loading...' : `${books.length} books found`}
+                    {loading ? 'Loading...' : `${books?.length || 0} books found`}
                   </p>
                 </div>
 
@@ -231,7 +231,7 @@ export default function Home() {
 
               {/* Data Table */}
               <DataTable
-                data={books}
+                data={books || []}
                 loading={loading}
                 onSelectionChange={handleBookSelection}
               />

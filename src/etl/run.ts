@@ -40,6 +40,9 @@ export interface ETLConfig {
   /** Whether to skip MongoDB sync */
   skipMongo?: boolean;
   
+  /** Whether to skip all database operations (CSV only) */
+  csvOnly?: boolean;
+  
   /** Whether to force reprocess all files */
   forceReprocess?: boolean;
   
@@ -109,7 +112,7 @@ export interface ETLRunResult {
  */
 export class ETLRunner {
   private config: Required<ETLConfig>;
-  private duckDb: DuckDBManager;
+  private duckDb: DuckDBManager | null = null;
   private mongo: MongoManager | null = null;
   
   constructor(config: ETLConfig = {}) {
@@ -117,20 +120,23 @@ export class ETLRunner {
     this.config = {
       inputDir: config.inputDir || './data_raw',
       outputDir: config.outputDir || './data_cleaned',
-      logDir: config.logDir || './logs',
-      duckDbPath: config.duckDbPath || './books.duckdb',
+      logDir: config.logDir || './data_cleaned/logs',
+      duckDbPath: config.duckDbPath || './data/library.duckdb',
       mongoUrl: config.mongoUrl || 'mongodb://127.0.0.1:27017',
       mongoDbName: config.mongoDbName || 'ffa',
       skipMongo: config.skipMongo || false,
+      csvOnly: config.csvOnly || false,
       forceReprocess: config.forceReprocess || false,
       specificFiles: config.specificFiles || [],
     };
     
-    // Initialize database managers
-    this.duckDb = new DuckDBManager(this.config.duckDbPath);
-    
-    if (!this.config.skipMongo) {
-      this.mongo = new MongoManager(this.config.mongoUrl, this.config.mongoDbName);
+    // Initialize database managers only if not in CSV-only mode
+    if (!this.config.csvOnly) {
+      this.duckDb = new DuckDBManager(this.config.duckDbPath);
+      
+      if (!this.config.skipMongo) {
+        this.mongo = new MongoManager(this.config.mongoUrl, this.config.mongoDbName);
+      }
     }
   }
   
@@ -142,8 +148,12 @@ export class ETLRunner {
     console.log('🚀 Starting ETL pipeline...');
     
     try {
-      // Initialize database connections
-      await this.initializeDatabases();
+      // Initialize database connections (skip if CSV-only mode)
+      if (!this.config.csvOnly) {
+        await this.initializeDatabases();
+      } else {
+        console.log('📝 Running in CSV-only mode (skipping database initialization)');
+      }
       
       // Discover Excel files to process
       const filesToProcess = await this.discoverFiles();
@@ -192,8 +202,10 @@ export class ETLRunner {
     console.log('🔗 Initializing database connections...');
     
     try {
-      await this.duckDb.initialize();
-      console.log('✅ DuckDB initialized');
+      if (this.duckDb) {
+        await this.duckDb.initialize();
+        console.log('✅ DuckDB initialized');
+      }
       
       if (this.mongo) {
         await this.mongo.initialize();
@@ -267,10 +279,13 @@ export class ETLRunner {
         outputDir: this.config.outputDir,
       });
       
-      // Step 6: Load into DuckDB
-      const duckDbResult = await this.duckDb.loadRows(rowsWithValidatedImages, filename);
+      // Step 6: Load into DuckDB (skip if CSV-only mode)
+      let duckDbResult;
+      if (this.duckDb) {
+        duckDbResult = await this.duckDb.loadRows(rowsWithValidatedImages, filename);
+      }
       
-      // Step 7: Upsert to MongoDB (if enabled)
+      // Step 7: Upsert to MongoDB (if enabled and not CSV-only)
       let mongoResult;
       if (this.mongo) {
         const mongoUpsertResult = await this.mongo.upsertRows(rowsWithValidatedImages, filename);
@@ -292,10 +307,10 @@ export class ETLRunner {
         validRows: transformResult.stats.validCount,
         rejectedRows: transformResult.stats.rejectedCount,
         csvPath: csvResult.filePath,
-        duckDbResult: {
+        duckDbResult: duckDbResult ? {
           inserted: duckDbResult.rowsInserted,
           updated: duckDbResult.rowsUpdated,
-        },
+        } : undefined,
         mongoResult,
         errors,
         duration: Date.now() - startTime,
@@ -417,7 +432,9 @@ export class ETLRunner {
    */
   private async cleanup(): Promise<void> {
     try {
-      await this.duckDb.close();
+      if (this.duckDb) {
+        await this.duckDb.close();
+      }
       if (this.mongo) {
         await this.mongo.close();
       }
@@ -446,6 +463,9 @@ export function parseETLArgs(args: string[]): ETLConfig {
       case '--skip-mongo':
         config.skipMongo = true;
         break;
+      case '--csv-only':
+        config.csvOnly = true;
+        break;
       case '--force':
         config.forceReprocess = true;
         break;
@@ -458,6 +478,7 @@ ETL Pipeline Usage:
   --input-dir <path>     Input directory for Excel files (default: /data_raw)
   --output-dir <path>    Output directory for CSV files (default: /data_cleaned)
   --skip-mongo           Skip MongoDB synchronization
+  --csv-only             Generate CSV files only (skip all database operations)
   --force                Force reprocess all files
   --files <list>         Comma-separated list of specific files to process
   --help                 Show this help message

@@ -128,7 +128,7 @@ export async function fetchTopRated(
   }
   
   const result = await response.json();
-  return result.data;
+  return result;
 }
 
 export async function fetchMovers(
@@ -245,7 +245,7 @@ export async function searchBooks(
   }
   
   const result = await response.json();
-  return result.data;
+  return result;
 }
 
 /**

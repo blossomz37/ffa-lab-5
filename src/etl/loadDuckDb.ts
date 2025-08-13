@@ -5,7 +5,7 @@
  * Handles schema creation, data loading, and idempotent upsert operations.
  */
 
-import Database from 'duckdb';
+import { Database, Connection } from 'duckdb';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { CleanRow } from '../lib/data-contract.js';
@@ -14,8 +14,8 @@ import { CleanRow } from '../lib/data-contract.js';
  * DuckDB connection and operations manager
  */
 export class DuckDBManager {
-  private db: Database.Database | null = null;
-  private connection: Database.Connection | null = null;
+  private db: Database | null = null;
+  private connection: Connection | null = null;
   private dbPath: string;
   
   constructor(dbPath: string = './data/library.duckdb') {
@@ -32,10 +32,10 @@ export class DuckDBManager {
       await this.ensureDirectoryExists(dbDir);
       
       // Create database instance
-      this.db = new Database.Database(this.dbPath);
+      this.db = new Database(this.dbPath);
       
       // Get connection
-      this.connection = await new Promise<Database.Connection>((resolve, reject) => {
+      this.connection = await new Promise<Connection>((resolve, reject) => {
         this.db!.connect((err, connection) => {
           if (err) reject(err);
           else resolve(connection);
