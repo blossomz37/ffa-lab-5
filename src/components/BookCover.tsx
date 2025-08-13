@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen } from 'lucide-react';
 
 interface BookCoverProps {
-  coverUrl?: string;
+  coverUrl?: string | undefined;
   title: string;
   size?: 'small' | 'medium' | 'large';
   className?: string;

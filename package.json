@@ -8,9 +8,17 @@
     "dev": "vite",
     "dev:server": "tsx server/index.ts",
     "build": "tsc && vite build",
+    "build:server": "tsc --project tsconfig.server.json",
+    "start": "node dist/server/index.js",
+    "start:server": "node dist/server/index.js",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "./scripts/deploy.sh",
+    "docker:build": "docker build -t book-analytics:latest .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
   },
   "keywords": [
     "etl",
